@@ -1,0 +1,357 @@
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#1A1D23;}
+.shell{background:#1A1D23;color:#E8EAF0;font-family:'Barlow',sans-serif;}
+.topbar{background:#F0B90B;padding:10px 16px;display:flex;align-items:center;gap:10px;}
+.topbar h1{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#1A1D23;letter-spacing:0.5px;}
+.topbar p{font-size:11px;color:#1A1D23;opacity:0.7;}
+.main-layout{display:grid;grid-template-columns:320px 1fr;height:560px;}
+@media(max-width:680px){.main-layout{grid-template-columns:1fr;height:auto;}}
+.sidebar{background:#1A1D23;border-right:1px solid #3D4255;overflow-y:auto;display:flex;flex-direction:column;}
+.map-col{position:relative;}
+#map{width:100%;height:560px;}
+@media(max-width:680px){#map{height:320px;}}
+.map-info{position:absolute;top:10px;left:10px;z-index:1000;background:#1A1D23;border:1px solid #F0B90B;border-radius:8px;padding:8px 12px;pointer-events:none;}
+.map-info .mi-label{font-size:10px;color:#8A90A2;text-transform:uppercase;letter-spacing:0.8px;}
+.map-info .mi-val{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#F0B90B;}
+.s-block{padding:12px 14px;border-bottom:1px solid #2C3040;}
+.s-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#F0B90B;margin-bottom:9px;}
+.field{margin-bottom:9px;}
+.field label{display:block;font-size:11px;color:#8A90A2;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;}
+.field select,.field input{width:100%;background:#2C3040;border:1px solid #3D4255;border-radius:6px;color:#E8EAF0;font-family:'Barlow',sans-serif;font-size:13px;padding:7px 10px;outline:none;}
+.field select:focus,.field input:focus{border-color:#F0B90B;}
+.field select option{background:#1A1D23;}
+.sl-row{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.sl-row label{font-size:10px;color:#8A90A2;text-transform:uppercase;letter-spacing:0.3px;min-width:80px;}
+.sl-row input[type=range]{flex:1;accent-color:#F0B90B;}
+.slv{font-size:12px;font-weight:600;color:#F0B90B;min-width:46px;text-align:right;font-family:'Barlow Condensed',sans-serif;}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px 14px;border-bottom:1px solid #2C3040;}
+.mbox{background:#2C3040;border-radius:6px;padding:9px 10px;}
+.mbox .ml{font-size:10px;color:#8A90A2;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:3px;}
+.mbox .mv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#E8EAF0;}
+.scenarios{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:10px 14px;border-bottom:1px solid #2C3040;}
+.sc{background:#2C3040;border-radius:6px;padding:8px;border-top:2px solid transparent;}
+.sc.pes{border-color:#EF4444;}
+.sc.rea{border-color:#F0B90B;}
+.sc.opt{border-color:#22C55E;}
+.sc .scl{font-size:9px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.sc.pes .scl{color:#EF4444;}
+.sc.rea .scl{color:#F0B90B;}
+.sc.opt .scl{color:#22C55E;}
+.sc .scv{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;}
+.sc.pes .scv{color:#EF4444;}
+.sc.rea .scv{color:#F0B90B;}
+.sc.opt .scv{color:#22C55E;}
+.sc .scs{font-size:10px;color:#8A90A2;}
+.eq-box{margin:10px 14px;background:#2C3040;border:1px solid #F0B90B;border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;}
+.eq-box .eql{font-size:11px;color:#8A90A2;}
+.eq-box .eqv{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#F0B90B;}
+.factor-tags{padding:0 14px 10px;display:flex;flex-wrap:wrap;gap:4px;}
+.ftag{font-size:10px;background:#2C3040;border-radius:4px;padding:3px 7px;color:#8A90A2;}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px 14px;}
+.cbox{background:#2C3040;border-radius:7px;padding:10px;}
+.cbox h4{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8A90A2;margin-bottom:8px;}
+.cbox canvas{max-height:110px;}
+.results-panel{padding:0;}
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <div style="width:32px;height:32px;background:#1A1D23;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;">🚛</div>
+    <div>
+      <h1>VolquetaCalc — Santander</h1>
+      <p>Calculadora de rentabilidad con mapa departamental</p>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <div class="sidebar">
+      <div class="s-block">
+        <div class="s-title">📍 Seleccionar ruta</div>
+        <div class="field">
+          <label>Origen</label>
+          <select id="origen" onchange="actualizarRuta()"></select>
+        </div>
+        <div class="field">
+          <label>Destino</label>
+          <select id="destino" onchange="actualizarRuta()"></select>
+        </div>
+        <div class="field">
+          <label>Distancia manual (km) — o usa el mapa</label>
+          <input type="number" id="distancia" value="80" step="5" oninput="calcular()">
+        </div>
+      </div>
+
+      <div class="s-block">
+        <div class="s-title">⛽ Combustible</div>
+        <div class="field">
+          <label>Precio ACPM (COP/galón)</label>
+          <input type="number" id="acpm" value="12500" step="100" oninput="calcular()">
+        </div>
+        <div class="sl-row">
+          <label>Rendimiento km/gal</label>
+          <input type="range" id="rend" min="5" max="14" value="9" step="0.5" oninput="document.getElementById('rendv').textContent=this.value;calcular()">
+          <span class="slv" id="rendv">9</span>
+        </div>
+        <div class="sl-row">
+          <label>Terreno</label>
+          <input type="range" id="terreno" min="1.0" max="1.5" value="1.2" step="0.05" oninput="document.getElementById('terv').textContent=(+this.value).toFixed(2);calcular()">
+          <span class="slv" id="terv">1.20</span>
+        </div>
+        <div class="factor-tags">
+          <span class="ftag">1.0 = Plano</span>
+          <span class="ftag">1.2 = Mixto</span>
+          <span class="ftag">1.5 = Montaña</span>
+        </div>
+      </div>
+
+      <div class="s-block">
+        <div class="s-title">🔧 Costos fijos</div>
+        <div class="field">
+          <label>Peajes (COP)</label>
+          <input type="number" id="peajes" value="35000" step="5000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Conductor (COP)</label>
+          <input type="number" id="conductor" value="80000" step="5000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Mantenimiento (COP)</label>
+          <input type="number" id="mant" value="55000" step="5000" oninput="calcular()">
+        </div>
+        <div class="field">
+          <label>Tarifa al cliente (COP)</label>
+          <input type="number" id="tarifa" value="580000" step="10000" oninput="calcular()">
+        </div>
+        <div class="sl-row">
+          <label>Desgaste vías %</label>
+          <input type="range" id="desgaste" min="5" max="20" value="12" step="1" oninput="document.getElementById('desv').textContent=this.value+'%';calcular()">
+          <span class="slv" id="desv">12%</span>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="mbox"><div class="ml">Galones</div><div class="mv" id="rGal">—</div></div>
+        <div class="mbox"><div class="ml">Combustible</div><div class="mv" id="rComb">—</div></div>
+        <div class="mbox"><div class="ml">Total costos</div><div class="mv" id="rTotal">—</div></div>
+        <div class="mbox"><div class="ml">Utilidad neta</div><div class="mv" id="rUtil" style="color:#22C55E">—</div></div>
+      </div>
+
+      <div class="scenarios">
+        <div class="sc pes">
+          <div class="scl">Pesimista</div>
+          <div class="scv" id="sPes">—</div>
+          <div class="scs" id="sPesPct">—</div>
+        </div>
+        <div class="sc rea">
+          <div class="scl">Real</div>
+          <div class="scv" id="sReal">—</div>
+          <div class="scs" id="sRealPct">—</div>
+        </div>
+        <div class="sc opt">
+          <div class="scl">Optimista</div>
+          <div class="scv" id="sOpt">—</div>
+          <div class="scs" id="sOptPct">—</div>
+        </div>
+      </div>
+
+      <div class="eq-box">
+        <div>
+          <div class="eql">Punto de equilibrio</div>
+          <div style="font-size:10px;color:#8A90A2;">Tarifa mínima para no perder</div>
+        </div>
+        <div class="eqv" id="rEq">—</div>
+      </div>
+
+      <div class="chart-row">
+        <div class="cbox">
+          <h4>Distribución</h4>
+          <div style="position:relative;height:110px;"><canvas id="donut"></canvas></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+            <span style="font-size:10px;color:#8A90A2;display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#F0B90B;border-radius:2px;display:inline-block;"></span>Combustible</span>
+            <span style="font-size:10px;color:#8A90A2;display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#3D4255;border-radius:2px;display:inline-block;"></span>Fijos</span>
+            <span style="font-size:10px;color:#8A90A2;display:flex;align-items:center;gap:3px;"><span style="width:8px;height:8px;background:#22C55E;border-radius:2px;display:inline-block;"></span>Ganancia</span>
+          </div>
+        </div>
+        <div class="cbox">
+          <h4>Escenarios %</h4>
+          <div style="position:relative;height:110px;"><canvas id="barchart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-col">
+      <div id="map"></div>
+      <div class="map-info">
+        <div class="mi-label">Ruta activa</div>
+        <div class="mi-val" id="routeLabel">Selecciona origen y destino</div>
+        <div style="font-size:11px;color:#8A90A2;margin-top:2px;" id="distLabel">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const municipios = [
+  {nombre:"Bucaramanga",lat:7.1193,lng:-73.1227,terreno:1.05},
+  {nombre:"Floridablanca",lat:7.0656,lng:-73.0879,terreno:1.05},
+  {nombre:"Girón",lat:7.0733,lng:-73.1680,terreno:1.1},
+  {nombre:"Piedecuesta",lat:6.9878,lng:-73.0508,terreno:1.15},
+  {nombre:"Barrancabermeja",lat:7.0667,lng:-73.8497,terreno:1.0},
+  {nombre:"San Gil",lat:6.5556,lng:-73.1344,terreno:1.3},
+  {nombre:"Socorro",lat:6.4647,lng:-73.2636,terreno:1.25},
+  {nombre:"Vélez",lat:6.0108,lng:-73.6781,terreno:1.35},
+  {nombre:"Barbosa",lat:5.9344,lng:-73.6186,terreno:1.3},
+  {nombre:"Málaga",lat:6.7022,lng:-72.7317,terreno:1.4},
+  {nombre:"Concepción",lat:6.8922,lng:-72.9392,terreno:1.35},
+  {nombre:"Zapatoca",lat:6.8178,lng:-73.2689,terreno:1.4},
+  {nombre:"El Playón",lat:7.3500,lng:-73.1833,terreno:1.2},
+  {nombre:"Rionegro",lat:7.3800,lng:-73.1600,terreno:1.15},
+  {nombre:"Sabana de Torres",lat:7.3981,lng:-73.5028,terreno:1.05},
+  {nombre:"Puerto Wilches",lat:7.3525,lng:-73.8972,terreno:1.0},
+  {nombre:"Landázuri",lat:6.2244,lng:-73.8122,terreno:1.45},
+  {nombre:"Cimitarra",lat:6.3178,lng:-74.0961,terreno:1.1},
+  {nombre:"El Carmen de Chucurí",lat:6.7069,lng:-73.5225,terreno:1.35},
+  {nombre:"Lebrija",lat:7.1344,lng:-73.2181,terreno:1.1},
+  {nombre:"Los Santos",lat:6.7900,lng:-73.0950,terreno:1.3},
+  {nombre:"Simacota",lat:6.3353,lng:-73.3547,terreno:1.4},
+  {nombre:"Charalá",lat:6.2867,lng:-73.1450,terreno:1.3},
+  {nombre:"Mogotes",lat:6.4778,lng:-72.9731,terreno:1.45},
+  {nombre:"Aratoca",lat:6.6978,lng:-72.9917,terreno:1.4},
+  {nombre:"Betulia",lat:6.9217,lng:-73.4531,terreno:1.3},
+  {nombre:"Matanza",lat:7.3678,lng:-72.9833,terreno:1.35},
+  {nombre:"Tona",lat:7.2361,lng:-72.9664,terreno:1.4},
+];
+
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
+function fmtCOP(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+
+const selO=document.getElementById('origen');
+const selD=document.getElementById('destino');
+municipios.forEach((m,i)=>{
+  selO.innerHTML+=`<option value="${i}">${m.nombre}</option>`;
+  selD.innerHTML+=`<option value="${i}">${m.nombre}</option>`;
+});
+selO.value=0; selD.value=4;
+
+const map=L.map('map',{zoomControl:true}).setView([6.7,−73.3],8);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; CartoDB',maxZoom:18
+}).addTo(map);
+
+const iconOrigen=L.divIcon({className:'',html:`<div style="width:14px;height:14px;background:#F0B90B;border:2px solid #fff;border-radius:50%;"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
+const iconDestino=L.divIcon({className:'',html:`<div style="width:14px;height:14px;background:#22C55E;border:2px solid #fff;border-radius:50%;"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
+const iconCity=L.divIcon({className:'',html:`<div style="width:8px;height:8px;background:#8A90A2;border:1px solid #3D4255;border-radius:50%;"></div>`,iconSize:[8,8],iconAnchor:[4,4]});
+
+let markers=[];
+let routeLine=null;
+let mOrigen=null,mDestino=null;
+
+municipios.forEach((m,i)=>{
+  const mk=L.marker([m.lat,m.lng],{icon:iconCity})
+    .addTo(map)
+    .bindPopup(`<b style="color:#F0B90B;">${m.nombre}</b><br><span style="font-size:11px;">Terreno: ${m.terreno.toFixed(2)}</span><br><button onclick="setOrigen(${i})" style="font-size:11px;margin-top:4px;padding:2px 8px;background:#F0B90B;border:none;border-radius:4px;cursor:pointer;">Origen</button> <button onclick="setDestino(${i})" style="font-size:11px;margin-top:4px;padding:2px 8px;background:#22C55E;border:none;border-radius:4px;cursor:pointer;">Destino</button>`);
+  markers.push(mk);
+});
+
+function setOrigen(i){selO.value=i;actualizarRuta();}
+function setDestino(i){selD.value=i;actualizarRuta();}
+window.setOrigen=setOrigen;
+window.setDestino=setDestino;
+
+function actualizarRuta(){
+  const o=municipios[+selO.value];
+  const d=municipios[+selD.value];
+  if(mOrigen)map.removeLayer(mOrigen);
+  if(mDestino)map.removeLayer(mDestino);
+  if(routeLine)map.removeLayer(routeLine);
+  mOrigen=L.marker([o.lat,o.lng],{icon:iconOrigen}).addTo(map).bindTooltip(o.nombre,{permanent:true,direction:'top',className:'',offset:[0,-6]});
+  mDestino=L.marker([d.lat,d.lng],{icon:iconDestino}).addTo(map).bindTooltip(d.nombre,{permanent:true,direction:'top',className:'',offset:[0,-6]});
+  const latlngs=[[o.lat,o.lng],[d.lat,d.lng]];
+  routeLine=L.polyline(latlngs,{color:'#F0B90B',weight:3,dashArray:'8,6',opacity:0.9}).addTo(map);
+  map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
+  const dist=haversine(o.lat,o.lng,d.lat,d.lng);
+  document.getElementById('distancia').value=dist;
+  const terr=((o.terreno+d.terreno)/2).toFixed(2);
+  document.getElementById('terreno').value=terr;
+  document.getElementById('terv').textContent=terr;
+  document.getElementById('routeLabel').textContent=o.nombre+' → '+d.nombre;
+  document.getElementById('distLabel').textContent=dist+' km (línea recta aprox.)';
+  calcular();
+}
+
+let donutInst=null,barInst=null;
+
+function calcular(){
+  const acpm=+document.getElementById('acpm').value||12500;
+  const dist=+document.getElementById('distancia').value||80;
+  const rend=+document.getElementById('rend').value||9;
+  const terr=+document.getElementById('terreno').value||1.2;
+  const peajes=+document.getElementById('peajes').value||35000;
+  const conductor=+document.getElementById('conductor').value||80000;
+  const mant=+document.getElementById('mant').value||55000;
+  const tarifa=+document.getElementById('tarifa').value||580000;
+  const desg=+document.getElementById('desgaste').value/100||0.12;
+  const rendEf=rend/terr;
+  const gal=dist/rendEf;
+  const combCosto=gal*acpm;
+  const fijos=peajes+conductor+mant;
+  const desgCosto=(combCosto+fijos)*desg;
+  const total=combCosto+fijos+desgCosto;
+  const util=tarifa-total;
+  const pct=tarifa>0?(util/tarifa*100):0;
+  document.getElementById('rGal').textContent=gal.toFixed(1)+' gal';
+  document.getElementById('rComb').textContent=fmtCOP(combCosto);
+  document.getElementById('rTotal').textContent=fmtCOP(total);
+  const uel=document.getElementById('rUtil');
+  uel.textContent=fmtCOP(util);
+  uel.style.color=util>=0?'#22C55E':'#EF4444';
+  document.getElementById('rEq').textContent=fmtCOP(total);
+  const esc=[
+    {f:1.20,vId:'sPes',pId:'sPesPct'},
+    {f:1.00,vId:'sReal',pId:'sRealPct'},
+    {f:0.85,vId:'sOpt',pId:'sOptPct'},
+  ];
+  const barData=[];
+  esc.forEach(e=>{
+    const c2=gal*acpm*e.f;
+    const t2=c2+fijos+(c2+fijos)*desg;
+    const u2=tarifa-t2;
+    const p2=tarifa>0?(u2/tarifa*100):0;
+    document.getElementById(e.vId).textContent=fmtCOP(u2);
+    document.getElementById(e.pId).textContent=p2.toFixed(1)+'%';
+    barData.push(Math.round(p2));
+  });
+  const pC=tarifa>0?Math.max(0,combCosto/tarifa*100):0;
+  const pF=tarifa>0?Math.max(0,(fijos+desgCosto)/tarifa*100):0;
+  const pG=Math.max(0,100-pC-pF);
+  if(donutInst){donutInst.data.datasets[0].data=[Math.round(pC),Math.round(pF),Math.round(pG)];donutInst.update();}
+  else{
+    donutInst=new Chart(document.getElementById('donut'),{
+      type:'doughnut',
+      data:{labels:['Combustible','Fijos','Ganancia'],datasets:[{data:[Math.round(pC),Math.round(pF),Math.round(pG)],backgroundColor:['#F0B90B','#3D4255','#22C55E'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': '+c.raw+'%'}}}}
+    });
+  }
+  if(barInst){barInst.data.datasets[0].data=barData;barInst.update();}
+  else{
+    barInst=new Chart(document.getElementById('barchart'),{
+      type:'bar',
+      data:{labels:['Pes','Real','Opt'],datasets:[{data:barData,backgroundColor:['#EF4444','#F0B90B','#22C55E'],borderRadius:4,borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{color:'#8A90A2',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'},border:{display:false}},x:{ticks:{color:'#8A90A2',font:{size:10}},grid:{display:false},border:{display:false}}}}
+    });
+  }
+}
+
+actualizarRuta();
+</script>
