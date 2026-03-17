@@ -1,0 +1,510 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap');
+  :root {
+    --cat-yellow: #F0B90B;
+    --cat-yellow-dark: #D4A00A;
+    --dark-steel: #1A1D23;
+    --mid-steel: #2C3040;
+    --light-steel: #3D4255;
+    --text-on-dark: #E8EAF0;
+    --text-muted: #8A90A2;
+    --success-green: #22C55E;
+    --danger-red: #EF4444;
+    --warning-amber: #F59E0B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app-shell {
+    background: var(--dark-steel);
+    color: var(--text-on-dark);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+  .top-bar {
+    background: var(--cat-yellow);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--dark-steel);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .top-bar h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--dark-steel);
+    letter-spacing: 0.5px;
+  }
+  .top-bar p { font-size: 12px; color: var(--dark-steel); opacity: 0.65; font-weight: 500; }
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 0;
+  }
+  @media (max-width: 680px) { .main-grid { grid-template-columns: 1fr; } }
+  .panel {
+    padding: 20px;
+    border-right: 1px solid var(--light-steel);
+    border-bottom: 1px solid var(--light-steel);
+  }
+  .panel:last-child { border-right: none; }
+  .panel-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cat-yellow);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-title span { font-size: 16px; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px; font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: var(--mid-steel);
+    border: 1px solid var(--light-steel);
+    border-radius: 6px;
+    color: var(--text-on-dark);
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px; font-weight: 500;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--cat-yellow); }
+  .field input::placeholder { color: var(--text-muted); font-size: 13px; }
+  .field select option { background: var(--dark-steel); }
+  .slider-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .slider-row label { font-size: 12px; color: var(--text-muted); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+  .slider-row input[type=range] { flex: 1; accent-color: var(--cat-yellow); }
+  .slider-val {
+    font-size: 14px; font-weight: 600;
+    color: var(--cat-yellow);
+    min-width: 52px; text-align: right;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+  .results-section {
+    grid-column: 1 / -1;
+    padding: 20px;
+    border-top: 2px solid var(--cat-yellow);
+  }
+  .results-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--text-on-dark);
+    margin-bottom: 16px;
+  }
+  .scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 580px) { .scenarios-grid { grid-template-columns: 1fr; } }
+  .scenario-card {
+    background: var(--mid-steel);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--light-steel);
+    position: relative;
+    overflow: hidden;
+  }
+  .scenario-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .scenario-card.pesimista::before { background: var(--danger-red); }
+  .scenario-card.real::before { background: var(--cat-yellow); }
+  .scenario-card.optimista::before { background: var(--success-green); }
+  .scenario-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .scenario-card.pesimista .scenario-label { color: var(--danger-red); }
+  .scenario-card.real .scenario-label { color: var(--cat-yellow); }
+  .scenario-card.optimista .scenario-label { color: var(--success-green); }
+  .scenario-acpm { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .scenario-big {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .scenario-card.pesimista .scenario-big { color: var(--danger-red); }
+  .scenario-card.real .scenario-big { color: var(--cat-yellow); }
+  .scenario-card.optimista .scenario-big { color: var(--success-green); }
+  .scenario-sub { font-size: 11px; color: var(--text-muted); }
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 580px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } }
+  .metric-box {
+    background: var(--mid-steel);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid var(--light-steel);
+  }
+  .metric-box .m-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .metric-box .m-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--text-on-dark);
+  }
+  .chart-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 580px) { .chart-area { grid-template-columns: 1fr; } }
+  .chart-box {
+    background: var(--mid-steel);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--light-steel);
+  }
+  .chart-box h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .donut-wrap {
+    position: relative; height: 160px;
+  }
+  .bar-wrap {
+    position: relative; height: 160px;
+  }
+  .legend-row {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 10px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; color: var(--text-muted);
+  }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .equilibrio-box {
+    background: linear-gradient(135deg, var(--mid-steel), var(--light-steel));
+    border: 1px solid var(--cat-yellow);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .eq-icon { font-size: 28px; }
+  .eq-text h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700;
+    color: var(--cat-yellow);
+    margin-bottom: 4px;
+  }
+  .eq-text p { font-size: 13px; color: var(--text-muted); }
+  .eq-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px; font-weight: 700;
+    color: var(--cat-yellow);
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .divider { height: 1px; background: var(--light-steel); }
+  .factor-tag {
+    display: inline-block;
+    background: var(--light-steel);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+</style>
+
+<div class="app-shell">
+  <div class="top-bar">
+    <div class="logo-icon">🚛</div>
+    <div>
+      <h1>VolquetaCalc Pro</h1>
+      <p>Calculadora de rentabilidad para transportistas — Colombia</p>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- Panel 1: Ruta y combustible -->
+    <div class="panel">
+      <div class="panel-title"><span>⛽</span> Combustible y Ruta</div>
+      <div class="field">
+        <label>Precio actual ACPM (COP/galón)</label>
+        <input type="number" id="acpmPrecio" value="12500" step="100" placeholder="Ej: 12500">
+      </div>
+      <div class="field">
+        <label>Distancia del viaje (km)</label>
+        <input type="number" id="distancia" value="120" step="5" placeholder="Ej: 120">
+      </div>
+      <div class="slider-row">
+        <label>Rendimiento km/gal</label>
+        <input type="range" id="rendimiento" min="5" max="15" value="9" step="0.5" oninput="document.getElementById('rendVal').textContent=this.value">
+        <span class="slider-val" id="rendVal">9</span>
+      </div>
+      <div class="slider-row">
+        <label>Factor terreno</label>
+        <input type="range" id="terreno" min="1.0" max="1.5" value="1.15" step="0.05" oninput="document.getElementById('terrVal').textContent=(+this.value).toFixed(2)">
+        <span class="slider-val" id="terrVal">1.15</span>
+      </div>
+      <div style="margin-bottom:6px;">
+        <span class="factor-tag">1.0 = Plano (Valle)</span>
+        <span class="factor-tag">1.2 = Mixto</span>
+        <span class="factor-tag">1.5 = Montaña (La Línea)</span>
+      </div>
+    </div>
+
+    <!-- Panel 2: Costos fijos -->
+    <div class="panel">
+      <div class="panel-title"><span>🔧</span> Costos Fijos del Viaje</div>
+      <div class="field">
+        <label>Peajes estimados (COP)</label>
+        <input type="number" id="peajes" value="45000" step="1000" placeholder="Ej: 45000">
+      </div>
+      <div class="field">
+        <label>Costo conductor (COP)</label>
+        <input type="number" id="conductor" value="80000" step="5000" placeholder="Ej: 80000">
+      </div>
+      <div class="field">
+        <label>Mantenimiento / desgaste (COP)</label>
+        <input type="number" id="mantenimiento" value="60000" step="5000" placeholder="Ej: 60000">
+      </div>
+      <div class="field">
+        <label>Tarifa cobrada al cliente (COP)</label>
+        <input type="number" id="tarifa" value="650000" step="10000" placeholder="Ej: 650000">
+      </div>
+      <div class="slider-row">
+        <label>Margen desgaste vías %</label>
+        <input type="range" id="margenDesgaste" min="5" max="20" value="12" step="1" oninput="document.getElementById('mdVal').textContent=this.value+'%'">
+        <span class="slider-val" id="mdVal">12%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Resultados -->
+  <div class="results-section">
+    <div class="results-title">Análisis de Rentabilidad</div>
+
+    <div class="metrics-row">
+      <div class="metric-box">
+        <div class="m-label">Galones consumidos</div>
+        <div class="m-val" id="galones">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="m-label">Costo combustible</div>
+        <div class="m-val" id="costoComb">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="m-label">Total costos</div>
+        <div class="m-val" id="totalCostos">—</div>
+      </div>
+      <div class="metric-box">
+        <div class="m-label">Utilidad neta</div>
+        <div class="m-val" id="utilidad" style="color: var(--success-green)">—</div>
+      </div>
+    </div>
+
+    <div class="scenarios-grid">
+      <div class="scenario-card pesimista">
+        <div class="scenario-label">Escenario Pesimista</div>
+        <div class="scenario-acpm" id="acpmPes">ACPM: —</div>
+        <div class="scenario-big" id="utilPes">—</div>
+        <div class="scenario-sub" id="pctPes">% utilidad: —</div>
+      </div>
+      <div class="scenario-card real">
+        <div class="scenario-label">Escenario Real</div>
+        <div class="scenario-acpm" id="acpmReal">ACPM: —</div>
+        <div class="scenario-big" id="utilReal">—</div>
+        <div class="scenario-sub" id="pctReal">% utilidad: —</div>
+      </div>
+      <div class="scenario-card optimista">
+        <div class="scenario-label">Escenario Optimista</div>
+        <div class="scenario-acpm" id="acpmOpt">ACPM: —</div>
+        <div class="scenario-big" id="utilOpt">—</div>
+        <div class="scenario-sub" id="pctOpt">% utilidad: —</div>
+      </div>
+    </div>
+
+    <div class="chart-area">
+      <div class="chart-box">
+        <h3>Distribución del presupuesto</h3>
+        <div class="donut-wrap">
+          <canvas id="donutChart"></canvas>
+        </div>
+        <div class="legend-row">
+          <div class="legend-item"><div class="legend-dot" style="background:#F0B90B"></div>Combustible</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3D4255"></div>Fijos</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#22C55E"></div>Utilidad</div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h3>Rentabilidad por escenario</h3>
+        <div class="bar-wrap">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="equilibrio-box">
+      <div class="eq-icon">⚖️</div>
+      <div class="eq-text">
+        <h4>Punto de Equilibrio</h4>
+        <p>Tarifa mínima para no perder dinero</p>
+      </div>
+      <div class="eq-val" id="equilibrio">—</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let donutChartInst = null;
+let barChartInst = null;
+
+function fmtCOP(n) {
+  return '$' + Math.round(n).toLocaleString('es-CO');
+}
+
+function calcular() {
+  const acpm = +document.getElementById('acpmPrecio').value || 12500;
+  const dist = +document.getElementById('distancia').value || 120;
+  const rend = +document.getElementById('rendimiento').value || 9;
+  const terreno = +document.getElementById('terreno').value || 1.15;
+  const peajes = +document.getElementById('peajes').value || 45000;
+  const conductor = +document.getElementById('conductor').value || 80000;
+  const mant = +document.getElementById('mantenimiento').value || 60000;
+  const tarifa = +document.getElementById('tarifa').value || 650000;
+  const margenDesgaste = +document.getElementById('margenDesgaste').value / 100 || 0.12;
+
+  const rendEfectivo = rend / terreno;
+  const galones = dist / rendEfectivo;
+  const costoComb = galones * acpm;
+  const costosFijos = peajes + conductor + mant;
+  const costoDesgaste = (costoComb + costosFijos) * margenDesgaste;
+  const totalCostos = costoComb + costosFijos + costoDesgaste;
+  const utilidad = tarifa - totalCostos;
+  const pctUtil = tarifa > 0 ? (utilidad / tarifa * 100) : 0;
+
+  document.getElementById('galones').textContent = galones.toFixed(1) + ' gal';
+  document.getElementById('costoComb').textContent = fmtCOP(costoComb);
+  document.getElementById('totalCostos').textContent = fmtCOP(totalCostos);
+  const utilEl = document.getElementById('utilidad');
+  utilEl.textContent = fmtCOP(utilidad);
+  utilEl.style.color = utilidad >= 0 ? '#22C55E' : '#EF4444';
+
+  const escenarios = [
+    { factor: 1.20, label: 'Pesimista', acpmId: 'acpmPes', utilId: 'utilPes', pctId: 'pctPes' },
+    { factor: 1.00, label: 'Real', acpmId: 'acpmReal', utilId: 'utilReal', pctId: 'pctReal' },
+    { factor: 0.85, label: 'Optimista', acpmId: 'acpmOpt', utilId: 'utilOpt', pctId: 'pctOpt' },
+  ];
+
+  const barValues = [];
+  escenarios.forEach(esc => {
+    const acpmEsc = acpm * esc.factor;
+    const combEsc = galones * acpmEsc;
+    const totalEsc = combEsc + costosFijos + (combEsc + costosFijos) * margenDesgaste;
+    const utilEsc = tarifa - totalEsc;
+    const pctEsc = tarifa > 0 ? (utilEsc / tarifa * 100) : 0;
+    document.getElementById(esc.acpmId).textContent = 'ACPM: ' + fmtCOP(acpmEsc) + '/gal';
+    document.getElementById(esc.utilId).textContent = fmtCOP(utilEsc);
+    document.getElementById(esc.pctId).textContent = '% utilidad: ' + pctEsc.toFixed(1) + '%';
+    barValues.push(Math.round(pctEsc));
+  });
+
+  const equilibrio = totalCostos;
+  document.getElementById('equilibrio').textContent = fmtCOP(equilibrio);
+
+  const pctComb = tarifa > 0 ? Math.max(0, costoComb / tarifa * 100) : 0;
+  const pctFijos = tarifa > 0 ? Math.max(0, (costosFijos + costoDesgaste) / tarifa * 100) : 0;
+  const pctGan = Math.max(0, 100 - pctComb - pctFijos);
+
+  if (donutChartInst) {
+    donutChartInst.data.datasets[0].data = [Math.round(pctComb), Math.round(pctFijos), Math.round(pctGan)];
+    donutChartInst.update();
+  } else {
+    donutChartInst = new Chart(document.getElementById('donutChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Combustible', 'Costos fijos', 'Utilidad'],
+        datasets: [{
+          data: [Math.round(pctComb), Math.round(pctFijos), Math.round(pctGan)],
+          backgroundColor: ['#F0B90B', '#3D4255', '#22C55E'],
+          borderWidth: 0,
+          hoverOffset: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '%' } } }
+      }
+    });
+  }
+
+  const barColors = ['#EF4444', '#F0B90B', '#22C55E'];
+  if (barChartInst) {
+    barChartInst.data.datasets[0].data = barValues;
+    barChartInst.update();
+  } else {
+    barChartInst = new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Pesimista', 'Real', 'Optimista'],
+        datasets: [{
+          label: '% Utilidad',
+          data: barValues,
+          backgroundColor: barColors,
+          borderRadius: 6,
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + '% de utilidad' } } },
+        scales: {
+          y: { ticks: { color: '#8A90A2', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } },
+          x: { ticks: { color: '#8A90A2' }, grid: { display: false }, border: { display: false } }
+        }
+      }
+    });
+  }
+}
+
+['acpmPrecio','distancia','peajes','conductor','mantenimiento','tarifa'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcular);
+});
+['rendimiento','terreno','margenDesgaste'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcular);
+});
+
+calcular();
+</script>
